@@ -69,6 +69,10 @@ class RE2::Set {
   bool Match(const StringPiece& text, std::vector<int>* v,
              ErrorInfo* error_info) const;
 
+  // Get the instruction count of the underlying program. Must be called after
+  // compile.
+  int ProgramSize() const;
+
  private:
   typedef std::pair<std::string, re2::Regexp*> Elem;
 

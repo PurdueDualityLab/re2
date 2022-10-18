@@ -173,4 +173,13 @@ bool RE2::Set::Match(const StringPiece& text, std::vector<int>* v,
   return true;
 }
 
+int RE2::Set::ProgramSize() const {
+    if (!this->compiled_) {
+        LOG(DFATAL) << "RE2::Set::Size() must be called after compilation";
+        return -1;
+    }
+
+    return this->prog_->size();
+}
+
 }  // namespace re2
