@@ -91,7 +91,7 @@ int RE2::Set::Add(const StringPiece& pattern, std::string* error) {
   return n;
 }
 
-bool RE2::Set::Compile() {
+bool RE2::Set::Compile(bool eager) {
   if (compiled_) {
     LOG(DFATAL) << "RE2::Set::Compile() called more than once";
     return false;
@@ -118,6 +118,18 @@ bool RE2::Set::Compile() {
 
   prog_.reset(Prog::CompileSet(re, anchor_, options_.max_mem()));
   re->Decref();
+
+  if (eager) {
+      auto cb = [](const int* next, bool match) {
+          if (!next) {
+              LOG(INFO) << "Precompiling regex set ran out of memory";
+          } else {
+            // LOG(INFO) << "Built state " << *next;
+          }
+      };
+      prog_->BuildEntireDFA(re2::Prog::MatchKind::kManyMatch, cb);
+  }
+
   return prog_ != nullptr;
 }
 

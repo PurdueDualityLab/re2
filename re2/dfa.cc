@@ -204,7 +204,7 @@ class DFA {
 
   // Clear the cache entirely.
   // Must hold cache_mutex_.w or be in destructor.
-  void ClearCache();
+  void ClearCache(bool inDestructor = false);
 
   // Converts a State into a Workq: the opposite of WorkqToCachedState.
   // L >= mutex_
@@ -472,7 +472,7 @@ DFA::DFA(Prog* prog, Prog::MatchKind kind, int64_t max_mem)
 DFA::~DFA() {
   delete q0_;
   delete q1_;
-  ClearCache();
+  ClearCache(true /* called in destructor, so it's okay */);
 }
 
 // In the DFA state graph, s->next[c] == NULL means that the
@@ -779,7 +779,15 @@ DFA::State* DFA::CachedState(int* inst, int ninst, uint32_t flag) {
 }
 
 // Clear the cache.  Must hold cache_mutex_.w or be in destructor.
-void DFA::ClearCache() {
+void DFA::ClearCache(bool inDestructor) {
+    if (!inDestructor) {
+        LOG(DFATAL) << "Cache was dropped prematurely";
+        // the only time this is okay is during the destructor
+        assert(false);
+    } else {
+        // LOG(INFO) << "Cache is dropped during destructor. That's okay";
+    }
+
   StateSet::iterator begin = state_cache_.begin();
   StateSet::iterator end = state_cache_.end();
   while (begin != end) {
@@ -794,6 +802,9 @@ void DFA::ClearCache() {
     std::allocator<char>().deallocate(reinterpret_cast<char*>(*tmp), mem);
   }
   state_cache_.clear();
+
+  // TODO figure out a way to attach an ID to show which is clearing??
+  // LOG(INFO) << "dl: Cache cleared";
 }
 
 // Copies insts in state s to the work queue q.
