@@ -56,7 +56,7 @@ class RE2::Set {
   // Returns false if the compiler runs out of memory.
   // Add() must not be called again after Compile().
   // Compile() must be called before Match().
-  bool Compile(bool eager = false);
+  bool Compile(bool eager = false, bool *success = nullptr);
 
   // Returns true if text matches at least one of the regexps in the set.
   // Fills v (if not NULL) with the indices of the matching regexps.
